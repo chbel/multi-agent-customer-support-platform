@@ -987,16 +987,28 @@ To delete the persisted SQLite checkpoint volume:
 docker compose down -v
 ```
 
-### Docker Compose with PostgreSQL
+### Docker Compose with PostgreSQL (default)
 
-Set:
+By default Compose starts a bundled `db` service (`postgres:16-alpine`, data in the
+`postgres_data` volume) and the API connects to it automatically. Leave `DATABASE_URL`
+empty and set `POSTGRES_USER` / `POSTGRES_PASSWORD` / `POSTGRES_DB` in `.env`.
+
+To use an external database (e.g. Neon) instead, set:
 
 ```text
 CHECKPOINTER_BACKEND=postgres
 DATABASE_URL=your_postgresql_connection_string
 ```
 
-The API container connects to the configured PostgreSQL database.
+Locally built images are tagged `${DOCKERHUB_USERNAME}/customer-support-agent-api` and
+`${DOCKERHUB_USERNAME}/customer-support-agent-frontend` (`DOCKERHUB_USERNAME` defaults to `local`).
+Host ports can be changed with `API_PORT` and `FRONTEND_PORT`.
+
+Run the test suite inside the API image:
+
+```bash
+docker compose run --rm -e CHECKPOINTER_BACKEND=sqlite -e DATABASE_PATH=/tmp/test.db --no-deps api pytest -q
+```
 
 Checkpoint state is stored externally and survives container recreation.
 
