@@ -2,9 +2,9 @@ name: CI & Docker Build/Push
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, develop ]
   pull_request:
-    branches: [ main ]
+    branches: [ main, develop ]
   workflow_dispatch:
 
 jobs:
@@ -65,8 +65,8 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: true
           tags: |
-            ${{ secrets.DOCKERHUB_USERNAME }}/multi-agent-customer-support-platformt-api:latest
-            ${{ secrets.DOCKERHUB_USERNAME }}/multi-agent-customer-support-platformt-api:${{ github.sha }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/multi-agent-customer-support-platform-api:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/multi-agent-customer-support-platform-api:${{ github.sha }}
 
       - name: Build and push Frontend Streamlit image
         uses: docker/build-push-action@v6
@@ -76,5 +76,5 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: true
           tags: |
-            ${{ secrets.DOCKERHUB_USERNAME }}/multi-agent-customer-support-platformt-frontend:latest
-            ${{ secrets.DOCKERHUB_USERNAME }}/multi-agent-customer-support-platformt-frontend:${{ github.sha }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/multi-agent-customer-support-platform-frontend:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/multi-agent-customer-support-platform-frontend:${{ github.sha }}
