@@ -1,33 +1,58 @@
 services:
+  db:
+    image: postgres:16-alpine
+
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-support}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-support}
+      POSTGRES_DB: ${POSTGRES_DB:-support}
+
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
   api:
     build:
       context: .
       dockerfile: Dockerfile
 
-    image: chebil22/customer-support-agent-api:latest
+    image: ${DOCKERHUB_USERNAME:-local}/customer-support-agent-api:latest
 
     ports:
-      - "8000:8000"
+      - "${API_PORT:-8000}:8000"
 
     environment:
       GROQ_API_KEY: ${GROQ_API_KEY}
-      CHECKPOINTER_BACKEND: postgres
+      CHECKPOINTER_BACKEND: ${CHECKPOINTER_BACKEND:-postgres}
       DATABASE_PATH: /data/support_checkpoints.db
-      DATABASE_URL: ${DATABASE_URL}
+      DATABASE_URL: ${DATABASE_URL:-postgresql://${POSTGRES_USER:-support}:${POSTGRES_PASSWORD:-support}@db:5432/${POSTGRES_DB:-support}}
       LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-insecure-default-change-in-production}
+      ACCESS_TOKEN_EXPIRE_MINUTES: ${ACCESS_TOKEN_EXPIRE_MINUTES:-60}
+      DEFAULT_ADMIN_USERNAME: ${DEFAULT_ADMIN_USERNAME:-admin}
+      DEFAULT_ADMIN_PASSWORD: ${DEFAULT_ADMIN_PASSWORD:-admin123}
 
     volumes:
       - support_data:/data
+
+    depends_on:
+      db:
+        condition: service_healthy
 
   frontend:
     build:
       context: .
       dockerfile: Dockerfile.frontend
 
-    image: chebil22/customer-support-agent-frontend:latest
+    image: ${DOCKERHUB_USERNAME:-local}/customer-support-agent-frontend:latest
 
     ports:
-      - "8501:8501"
+      - "${FRONTEND_PORT:-8501}:8501"
 
     environment:
       API_URL: http://api:8000
@@ -38,3 +63,4 @@ services:
 
 volumes:
   support_data:
+  postgres_data:
